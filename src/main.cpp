@@ -31,7 +31,9 @@ public:
 	double tolerance;
 	int patience;
 
-	DemBonesModel() : tolerance(1e-3), patience(3) { nIters = 30; clear(); }
+	bool useSkinCluster = true;
+
+	DemBonesModel() : tolerance(1e-3), patience(3) { nIters = 30; nB = 10; clear(); }
 
 	void cbIterBegin() {
 		LOG("  iteration #" << iter << endl);
@@ -105,11 +107,14 @@ public:
 				fv[i].push_back((int)indices[j]);
 		}
 
+		if (!useSkinCluster) return;
+
 		// update model: weights and skeleton
 		MItDependencyGraph graphIter(dag.node(), MFn::kSkinClusterFilter, MItDependencyGraph::kUpstream);
 		MObject rootNode = graphIter.currentItem(&status);
 
-		if (MS::kSuccess == status) {
+		const bool hasSkinCluster = MS::kSuccess == status;
+		if (hasSkinCluster) {
 			// query bones
 			MFnSkinCluster skinCluster(rootNode);
 			nB = skinCluster.influenceObjects(bonesMaya, &status);
@@ -132,6 +137,11 @@ public:
 				for (int k = 0; k < nV; k++) 
 					wT[boneName[j]](k) = weights[k];
 			}
+		}
+		else
+		{
+			std::cout << "Computing without skinCluster." << std::endl;
+			return;
 		}
 
 		parent.resize(nB);
@@ -338,6 +348,7 @@ public:
 		LOG("parameters" << endl);
 		LOG("  source                   = " << source << endl);
 		LOG("  target                   = " << target << endl);
+		LOG("  num_bones                = " << nB << endl);
 		LOG("  start_frame              = " << startFrame << endl);
 		LOG("  end_frame                = " << endFrame << endl);
 		LOG("  num_iterations           = " << nIters << endl);
@@ -351,6 +362,7 @@ public:
 		LOG("  weights_smooth           = " << weightsSmooth << endl);
 		LOG("  weights_smooth_step      = " << weightsSmoothStep << endl);
 		LOG("  weights_epsilon          = " << weightEps << endl);
+		LOG("  use_skinCluster          = " << useSkinCluster << endl);
 		
 		// variables
 		prevErr = -1;
@@ -400,13 +412,16 @@ public:
 		VectorXd tVal, rVal;
 		MatrixXd lr, lt, gb, lbr, lbt;
 		computeRTB(0, lr, lt, gb, lbr, lbt, false);
+		
+		std::cout<<"Computed RTB"<<std::endl;
 
 		for (int j = 0; j < nB; j++) {
-			string name = boneName[j];
+			string name = boneName.size() == nB ? boneName[j] : to_string(j);
 			bonesMaya.push_back(name);
 			MVector translate = MVector(lbt(0, j), lbt(1, j), lbt(2, j));
 			MVector rotate = MVector(lbr(0, j), lbr(1, j), lbr(2, j));
-			bindMatricesMaya[name] = Conversion::toMMatrix(translate, rotate, rotOrderMaya[name]);
+			MTransformationMatrix::RotationOrder rotOrder = rotOrderMaya.find(name) != rotOrderMaya.end() ? rotOrderMaya[name] : MTransformationMatrix::RotationOrder::kXYZ;
+			bindMatricesMaya[name] = Conversion::toMMatrix(translate, rotate, rotOrder);
 
 			tVal = lt.col(j);
 			rVal = lr.col(j);
@@ -415,7 +430,7 @@ public:
 				int num = k - sF;
 				MVector translate = MVector(tVal(num * 3), tVal((num * 3) + 1), tVal((num * 3) + 2));
 				MVector rotate = MVector(rVal(num * 3), rVal((num * 3) + 1), rVal((num * 3) + 2));
-				animMatricesMaya[name][k] = Conversion::toMMatrix(translate, rotate, rotOrderMaya[name]);
+				animMatricesMaya[name][k] = Conversion::toMMatrix(translate, rotate, rotOrder);
 			}
 		}
 
@@ -476,6 +491,8 @@ PYBIND11_MODULE(_core, m) {
 		.def_readwrite("weights_smooth", &DemBonesModel::weightsSmooth, "Weights smoothness soft constraint, default = 1e-4")
 		.def_readwrite("weights_smooth_step", &DemBonesModel::weightsSmoothStep, "Step size for the weights smoothness soft constraint, default = 1.0")
 		.def_readwrite("weights_epsilon", &DemBonesModel::weightEps, "Epsilon for weights solver, default = 1e-15")
+		.def_readwrite("use_skinCluster", &DemBonesModel::useSkinCluster, "Use skinCluster influences to compute the new weights")
+		.def_readwrite("num_bones", &DemBonesModel::nB, "Number of bones")
 		.def_readonly("start_frame", &DemBonesModel::sF, "Start frame of solver")
 		.def_readonly("end_frame", &DemBonesModel::eF, "End frame of solver")
 		.def_readonly("influences", &DemBonesModel::bonesMaya, "List of all influences")
