@@ -31,9 +31,10 @@ public:
 	double tolerance;
 	int patience;
 
+	MObject skinClusterObj;
 	bool useSkinCluster = true;
 
-	DemBonesModel() : tolerance(1e-3), patience(3) { nIters = 30; nB = 10; clear(); }
+	DemBonesModel() : tolerance(1e-3), patience(3) { nIters = 30; clear(); }
 
 	void cbIterBegin() {
 		LOG("  iteration #" << iter << endl);
@@ -69,6 +70,32 @@ public:
 	bool cbTransformationsIterEnd() { return false; }
 
 	bool cbWeightsIterEnd() { return false; }
+
+	MObject getSkinCluster(MObject node)
+	{
+		if (node.isNull())
+		{
+			return MObject::kNullObj;
+		}
+		if (node.hasFn(MFn::kSkinClusterFilter))
+			return node;
+
+		MItDependencyGraph graphIter(node, MFn::kSkinClusterFilter, MItDependencyGraph::kUpstream);
+		skinClusterObj = graphIter.currentItem(&status);
+		if (MS::kSuccess == status)
+			return skinClusterObj;
+		else
+			return MObject::kNullObj;
+	}
+
+	MObject getMObject(const string &nodeName) const
+	{
+		MSelectionList sel;
+		sel.add(nodeName.c_str());
+		MObject node;
+		sel.getDependNode(0, node);
+		return node;
+	}
 
 	void extractSource(MDagPath& dag, MFnMesh& mesh) {
 		MatrixXd wd(0, 0);
@@ -111,12 +138,12 @@ public:
 
 		// update model: weights and skeleton
 		MItDependencyGraph graphIter(dag.node(), MFn::kSkinClusterFilter, MItDependencyGraph::kUpstream);
-		MObject rootNode = graphIter.currentItem(&status);
+		skinClusterObj = graphIter.currentItem(&status);
 
 		const bool hasSkinCluster = MS::kSuccess == status;
 		if (hasSkinCluster) {
 			// query bones
-			MFnSkinCluster skinCluster(rootNode);
+			MFnSkinCluster skinCluster(skinClusterObj);
 			nB = skinCluster.influenceObjects(bonesMaya, &status);
 			CHECK_MSTATUS_AND_THROW(status);
 
@@ -413,10 +440,10 @@ public:
 		MatrixXd lr, lt, gb, lbr, lbt;
 		computeRTB(0, lr, lt, gb, lbr, lbt, false);
 		
-		std::cout<<"Computed RTB"<<std::endl;
+		LOG("Computed RTB" << std::endl);
 
 		for (int j = 0; j < nB; j++) {
-			string name = boneName.size() == nB ? boneName[j] : to_string(j);
+			string name = boneName.size() == nB ? boneName[j] : "joint" + to_string(j);  // use the bind name or joint0, joint1, joint2, etc.
 			bonesMaya.push_back(name);
 			MVector translate = MVector(lbt(0, j), lbt(1, j), lbt(2, j));
 			MVector rotate = MVector(lbr(0, j), lbr(1, j), lbr(2, j));
@@ -464,8 +491,68 @@ public:
 		DemBonesExt<double, float>::clear();
 		points.clear();
 		boneIndex.clear();
+		nB = 10;
+		useSkinCluster = true;
 	}
 
+	void setWeights(MObject& skinCluster, const vector<double>& weights)
+	{
+		// get skinCluster influences
+		MFnSkinCluster fnSkin(skinCluster, &status);
+		CHECK_MSTATUS_AND_THROW(status);
+		MDagPathArray influences;
+		int numInfluences = fnSkin.influenceObjects(influences);
+
+		// get mesh vertices
+		MDagPath meshPath;
+		fnSkin.getPathAtIndex(0, meshPath);
+		meshPath.isValid(&status);
+		CHECK_MSTATUS_AND_THROW(status);
+		MFnMesh fnMesh(meshPath, &status);
+		int numVertices = fnMesh.numVertices();
+
+		// assure that the provided weights match the number of vertices and influences
+		if (weights.size() != numVertices * numInfluences)
+			throw std::exception("Provided weights do not match the number of vertices and influences.");
+
+		// set the weights
+		MPlug weightListPlug = fnSkin.findPlug("weightList", true);
+		MPlug vtxWeightsPlug, weightsPlug, singleWeightPlug;
+		for (int i=0; i < numVertices; i++)  // for each vertex
+		{  
+			vtxWeightsPlug = weightListPlug.elementByPhysicalIndex(i);
+			weightsPlug = vtxWeightsPlug.child(0);  // access the actual weight attr
+			// First reset values to zero:
+			for (int j=0; j <weightsPlug.numElements(); j++)  // for each joint
+			{
+				singleWeightPlug = weightsPlug.elementByPhysicalIndex(j);
+				singleWeightPlug.setFloat(0.0f);
+			}
+
+			// set the corresponding weight for the influence
+			for (int infIdx=0; infIdx < numInfluences; infIdx++)
+			{
+				singleWeightPlug = weightsPlug.elementByLogicalIndex(fnSkin.indexForInfluenceObject(influences[infIdx]));
+				singleWeightPlug.setFloat(weights[i * numInfluences + infIdx]);
+			}
+		}
+	}
+
+	void applyWeights(const string& skinCluster = "", const vector<double>& weights = {})
+	{
+		if (skinCluster != "")
+		{
+			skinClusterObj = getSkinCluster(getMObject(skinCluster));
+		}
+		if(skinClusterObj.isNull()) 
+			throw std::exception("No skinCluster provided");
+		
+		if (weights.size() != 0)
+			setWeights(skinClusterObj, weights);
+		else
+			setWeights(skinClusterObj, weightsMaya);
+	}
+	
 
 private:
 	double prevErr;
@@ -500,5 +587,8 @@ PYBIND11_MODULE(_core, m) {
 		.def("rmse", &DemBonesModel::rmse, "Root mean squared reconstruction error")
 		.def("compute", &DemBonesModel::compute, "Skinning decomposition of alternative updating weights and bone transformations", py::arg("source"), py::arg("target"), py::arg("start_frame"), py::arg("end_frame"))
 		.def("bind_matrix", &DemBonesModel::bindMatrix, "Get the bind matrix for the provided influence", py::arg("influence"))
-		.def("anim_matrix", &DemBonesModel::animMatrix, "Get the animation matrix for the provided influence at the provided frame", py::arg("influence"), py::arg("frame"));
+		.def("anim_matrix", &DemBonesModel::animMatrix, "Get the animation matrix for the provided influence at the provided frame", py::arg("influence"), py::arg("frame"))
+		.def("set_weights", &DemBonesModel::setWeights, "Set the evaluated weights", py::arg("skinCluster"), py::arg("weights"))
+		.def("apply_weights", &DemBonesModel::applyWeights, "Set the evaluated weights", py::arg("skinCluster"), py::arg("weights"));
+
 }
