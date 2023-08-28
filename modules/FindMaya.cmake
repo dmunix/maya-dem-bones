@@ -49,6 +49,7 @@ if(NOT DEFINED MAYA_VERSION)
 else()
     message(STATUS "Maya DEFINED!! MAYA_VERSION: ${MAYA_VERSION}")
 endif()
+message(STATUS "Maya DEFINED as!! MAYA_VERSION: ${MAYA_VERSION}")
 
 # OS Specific environment setup
 set(MAYA_COMPILE_DEFINITIONS "REQUIRE_IOSTREAM;_BOOL")
