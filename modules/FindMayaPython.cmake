@@ -102,6 +102,10 @@ file(GLOB_RECURSE Python_INCLUDE_DIR LIST_DIRECTORIES false
 list(GET Python_INCLUDE_DIR 0 Python_INCLUDE_DIR)
 get_filename_component(Python_INCLUDE_DIR ${Python_INCLUDE_DIR} DIRECTORY)
 
+message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
+message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
+message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
