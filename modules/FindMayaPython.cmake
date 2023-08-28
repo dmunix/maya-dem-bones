@@ -116,4 +116,4 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
 
-find_package(Python QUIET COMPONENTS Interpreter Development)
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
