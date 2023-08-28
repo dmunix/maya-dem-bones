@@ -120,7 +120,9 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
 
+message(STATUS "Searching for maya....")
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
+message(STATUS "Searching for maya....DONE")
 
 message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
 message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
