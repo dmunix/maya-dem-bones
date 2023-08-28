@@ -94,27 +94,34 @@ list(GET Python_LIBRARY 0 Python_LIBRARY)
 file(GLOB_RECURSE Python_INCLUDE_DIR LIST_DIRECTORIES false
     ${MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python/Python.h
     $ENV{MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python/Python.h
-    # ${MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
-    # ${MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
-    # $ENV{MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
-    # $ENV{MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
-    # ${MAYA_LOCATION}/include/Python*/Python.h
-    # $ENV{MAYA_LOCATION}/include/Python*/Python.h
+    ${MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
+    ${MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
+    $ENV{MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
+    $ENV{MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
+    ${MAYA_LOCATION}/include/Python*/Python.h
+    $ENV{MAYA_LOCATION}/include/Python*/Python.h
 )
 list(GET Python_INCLUDE_DIR 0 Python_INCLUDE_DIR)
 get_filename_component(Python_INCLUDE_DIR ${Python_INCLUDE_DIR} DIRECTORY)
 
 message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
+message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
 message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
 
-set(Python_LIBRARY /usr/autodesk/maya/lib/libpython3.so)
-set(Python_EXECUTABLE /usr/autodesk/maya/mayapy)
+set(Python_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
+set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
+set(Python_EXECUTABLE /usr/autodesk/maya2022/mayapy)
 
 message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
+message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
 message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
 
-# find_package(Python QUIET COMPONENTS Interpreter Development)
+find_package(Python QUIET COMPONENTS Interpreter Development)
+
+message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
+message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
+message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
