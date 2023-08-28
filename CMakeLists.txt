@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(dem_bones VERSION 1.0 DESCRIPTION "DemBones Python bindings for Maya" LANGUAGES CXX)
-set(MAYA_VERSION 2022 CACHE STRING "Maya version")
+
 include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
