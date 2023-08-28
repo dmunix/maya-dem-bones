@@ -45,11 +45,7 @@
 # Set a default Maya version if not specified
 if(NOT DEFINED MAYA_VERSION)
     set(MAYA_VERSION 2022 CACHE STRING "Maya version")
-    message(STATUS "Maya NOT DEFINED!! MAYA_VERSION: ${MAYA_VERSION}")
-else()
-    message(STATUS "Maya DEFINED!! MAYA_VERSION: ${MAYA_VERSION}")
 endif()
-message(STATUS "Maya DEFINED as!! MAYA_VERSION: ${MAYA_VERSION}")
 
 # OS Specific environment setup
 set(MAYA_COMPILE_DEFINITIONS "REQUIRE_IOSTREAM;_BOOL")
