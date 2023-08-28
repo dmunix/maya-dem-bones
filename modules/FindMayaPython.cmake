@@ -81,6 +81,7 @@ file(GLOB_RECURSE Python_LIBRARY LIST_DIRECTORIES false
     ${MAYA_LOCATION}/lib/python${MAYA_PYTHON_VERSION}*.lib
     ${MAYA_LOCATION}/Maya.app/Contents/MacOS/python.lib
     ${MAYA_LOCATION}/Maya.app/Contents/MacOS/python${MAYA_PYTHON_VERSION}*.lib
+    ${MAYA_LOCATION}/lib/libpython*.lib
     $ENV{MAYA_LOCATION}/lib/python.lib
     $ENV{MAYA_LOCATION}/lib/python${MAYA_PYTHON_VERSION}*.lib
     $ENV{MAYA_LOCATION}/Maya.app/Contents/MacOS/python.lib
