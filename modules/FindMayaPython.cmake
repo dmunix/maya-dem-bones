@@ -94,6 +94,8 @@ list(GET Python_LIBRARY 0 Python_LIBRARY)
 file(GLOB_RECURSE Python_INCLUDE_DIR LIST_DIRECTORIES false
     ${MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
     ${MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
+    ${MAYA_LOCATION}/include/Python*/Python/Python.h
+    $ENV{MAYA_LOCATION}/include/Python*/Python/Python.h
     $ENV{MAYA_LOCATION}/include/Python${MAYA_PYTHON_VERSION}*/Python.h
     $ENV{MAYA_LOCATION}/devkit/include/Python${MAYA_PYTHON_VERSION}*/Python.h
     ${MAYA_LOCATION}/include/Python*/Python.h
