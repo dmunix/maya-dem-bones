@@ -26,6 +26,11 @@ SET(DEMBONES_FILES
 
 find_package(OpenMP)
 
+message(STATUS "Searching for PYTHONE....")
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+message(STATUS "Searching for PYTHONE....")
+
+
 if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
