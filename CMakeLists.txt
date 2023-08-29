@@ -26,24 +26,6 @@ SET(DEMBONES_FILES
 
 find_package(OpenMP)
 
-message(STATUS "Searching for PYTHONE....")
-
-set(Python_INCLUDE_DIR /usr/include/python3.6m)
-set(Python_LIBRARY /lib64/libpython3.so)
-set(Python_EXECUTABLE /bin/python)
-
-# set(Python_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
-# set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
-# set(Python_EXECUTABLE /usr/autodesk/maya2022/bin/mayapy)
-
-message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
-message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
-message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
-
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
-message(STATUS "Searching for PYTHONE....")
-
-
 if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
