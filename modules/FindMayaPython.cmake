@@ -15,8 +15,6 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# set(MAYA_VERSION 2022 CACHE STRING "Maya version" FORCE)
-# message(STATUS "SET Maya MAYA_VERSION: ${MAYA_VERSION}")
 
 # Set a default Maya version if not specified
 if(NOT DEFINED MAYA_VERSION)
@@ -45,10 +43,6 @@ set(MAYA_INSTALL_BASE_PATH ${MAYA_INSTALL_BASE_DEFAULT} CACHE STRING
     "Root path containing your maya installations, e.g. /usr/autodesk or /Applications/Autodesk/")
 
 set(MAYA_LOCATION ${MAYA_INSTALL_BASE_PATH}/maya${MAYA_VERSION}${MAYA_INSTALL_BASE_SUFFIX})
-
-message(STATUS "Maya MAYA_VERSION: ${MAYA_VERSION}")
-message(STATUS "Maya location: ${MAYA_LOCATION}")
-message(STATUS "Maya MAYA_PYTHON_VERSION: ${MAYA_PYTHON_VERSION}")
 
 # Maya python interpreter
 if(MAYA_VERSION EQUAL 2022 AND MAYA_PYTHON_VERSION EQUAL 2)
@@ -104,30 +98,8 @@ file(GLOB_RECURSE Python_INCLUDE_DIR LIST_DIRECTORIES false
 list(GET Python_INCLUDE_DIR 0 Python_INCLUDE_DIR)
 get_filename_component(Python_INCLUDE_DIR ${Python_INCLUDE_DIR} DIRECTORY)
 
-message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
-message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
-message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
-
-set(Python_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
-set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
-set(Python_EXECUTABLE /usr/autodesk/maya2022/bin/mayapy)
-
-message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
-message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
-message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
-
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
 
-message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
-message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
-message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
-
-# set(Python_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
-# set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
-# set(Python_EXECUTABLE /usr/autodesk/maya2022/bin/mayapy)
-
-message(STATUS "Searching for python....")
 find_package(Python QUIET COMPONENTS Interpreter Development)
-message(STATUS "Searching for python....DONE")
