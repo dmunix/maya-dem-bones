@@ -112,9 +112,9 @@ message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
 # set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
 # set(Python_EXECUTABLE /usr/autodesk/maya2022/mayapy)
 
-set(PYTHON_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
-set(PYTHON_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
-set(PYTHON_EXECUTABLE /usr/autodesk/maya2022/mayapy)
+set(Python_LIBRARY /usr/autodesk/maya2022/lib/libpython3.so)
+set(Python_INCLUDE_DIR /usr/autodesk/maya2022/include/Python37/Python)
+set(Python_EXECUTABLE /usr/autodesk/maya2022/mayapy)
 
 message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
 message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
@@ -124,9 +124,9 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MayaPython
     REQUIRED_VARS Python_EXECUTABLE Python_INCLUDE_DIR Python_LIBRARY)
 
-message(STATUS "Searching for maya....")
+message(STATUS "Searching for python....")
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
-message(STATUS "Searching for maya....DONE")
+message(STATUS "Searching for python....DONE")
 
 message(STATUS "Maya Python_LIBRARY: ${Python_LIBRARY}")
 message(STATUS "Maya Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
