@@ -27,6 +27,10 @@ SET(DEMBONES_FILES
 find_package(OpenMP)
 
 message(STATUS "Searching for PYTHONE....")
+
+set(PYTHON_INCLUDE_DIR /usr/include/python3.6m)
+set(PYTHON_LIBRARY /lib64/libpython3.so)
+set(PYTHON_EXECUTABLE /bin/python)
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 message(STATUS "Searching for PYTHONE....")
 
