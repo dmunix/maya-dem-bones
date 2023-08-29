@@ -129,5 +129,5 @@ message(STATUS "Maya Python_EXECUTABLE: ${Python_EXECUTABLE}")
 # set(Python_EXECUTABLE /usr/autodesk/maya2022/bin/mayapy)
 
 message(STATUS "Searching for python....")
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
+find_package(Python QUIET COMPONENTS Interpreter Development)
 message(STATUS "Searching for python....DONE")
