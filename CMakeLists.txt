@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.15)
 
 project(dem_bones VERSION 1.0 DESCRIPTION "DemBones Python bindings for Maya" LANGUAGES CXX)
 
+message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
+
+
 include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
@@ -23,8 +26,10 @@ SET(DEMBONES_FILES
     "extern/DemBones/include/DemBones/Indexing.h"
     "extern/DemBones/include/DemBones/MatBlocks.h"
 )
+message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
 
 find_package(OpenMP)
+message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
 
 if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -39,7 +44,7 @@ endif()
 message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
 message(STATUS "MAYA_VERSION -> ${MAYA_PYTHON_VERSION}")
 if (SKBUILD)
-    string(SUBSTRING $CACHE{PYTHON_VERSION_STRING} 0 1 MAYA_PYTHON_VERSION)
+    string(SUBSTRING ${PYTHON_VERSION_STRING} 0 1 MAYA_PYTHON_VERSION)
     message(STATUS "$CACHE{PYTHON_EXECUTABLE}")
     string(REGEX MATCH Maya[0-9][0-9][0-9][0-9] MAYA_VERSION "$CACHE{PYTHON_EXECUTABLE}")
     string(SUBSTRING ${MAYA_VERSION} 4 -1 MAYA_VERSION)
