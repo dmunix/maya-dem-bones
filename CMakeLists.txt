@@ -36,12 +36,16 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_compile_options("$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:DEBUG>>:/bigobj>")
 endif()
 
+message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
+message(STATUS "MAYA_VERSION -> ${MAYA_PYTHON_VERSION}")
 if (SKBUILD)
     string(SUBSTRING $CACHE{PYTHON_VERSION_STRING} 0 1 MAYA_PYTHON_VERSION)
-    message(STATUS, "$CACHE{PYTHON_EXECUTABLE}")
+    message(STATUS "$CACHE{PYTHON_EXECUTABLE}")
     string(REGEX MATCH Maya[0-9][0-9][0-9][0-9] MAYA_VERSION "$CACHE{PYTHON_EXECUTABLE}")
     string(SUBSTRING ${MAYA_VERSION} 4 -1 MAYA_VERSION)
 endif()
+message(STATUS "PYTHON_EXECUTABLE -> $CACHE{PYTHON_EXECUTABLE}")
+message(STATUS "MAYA_VERSION -> ${MAYA_PYTHON_VERSION}")
 
 find_package(Eigen3 REQUIRED)
 find_package(Maya REQUIRED)
@@ -49,7 +53,9 @@ find_package(MayaPython REQUIRED)
 
 add_subdirectory(extern/pybind11)
 
-Python(_core ${SOURCE_FILES} ${DEMBONES_FILES})
+# Python_add_library(_core ${SOURCE_FILES} ${DEMBONES_FILES})
+add_library(_core PRIVATE Python:Python ${SOURCE_FILES} ${DEMBONES_FILES})
+
 target_link_libraries(_core PRIVATE Maya::Maya Eigen3::Eigen pybind11::module)
 target_include_directories(_core
     PRIVATE Maya::Maya Eigen3::Eigen pybind11::module
