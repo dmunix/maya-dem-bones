@@ -97,12 +97,12 @@ public:
 		return node;
 	}
 
-	void extractSource(MDagPath& dag, MFnMesh& mesh) {
+	void extractSource(const MDagPath& dag, MFnMesh& mesh) {
 		MatrixXd wd(0, 0);
 		MIntArray indices;
 		MDoubleArray weights;
 		MDagPath boneParentMaya;
-		MDagPathArray bonesMaya;
+		MDagPathArray influences;
 		map<string, MatrixXd, less<string>, aligned_allocator<pair<const string, MatrixXd>>> mT;
 		map<string, VectorXd, less<string>, aligned_allocator<pair<const string, VectorXd>>> wT;
 		map<string, Matrix4d, less<string>, aligned_allocator<pair<const string, Matrix4d>>> bindMatrices;
@@ -137,20 +137,19 @@ public:
 		if (!useSkinCluster) return;
 
 		// update model: weights and skeleton
-		MItDependencyGraph graphIter(dag.node(), MFn::kSkinClusterFilter, MItDependencyGraph::kUpstream);
-		skinClusterObj = graphIter.currentItem(&status);
-
-		const bool hasSkinCluster = MS::kSuccess == status;
+		skinClusterObj = getSkinCluster(dag.node());
+		
+		const bool hasSkinCluster = skinClusterObj.isNull() ? false : true;
 		if (hasSkinCluster) {
 			// query bones
 			MFnSkinCluster skinCluster(skinClusterObj);
-			nB = skinCluster.influenceObjects(bonesMaya, &status);
+			nB = skinCluster.influenceObjects(influences, &status);
 			CHECK_MSTATUS_AND_THROW(status);
 
 			// get bones names
 			boneName.resize(nB);
 			for (int j = 0; j < nB; j++) {
-				string name = bonesMaya[j].partialPathName().asUTF8();
+				string name = influences[j].partialPathName().asUTF8();
 				boneName[j] = name;
 				boneIndex[name] = j;
 			}
@@ -203,7 +202,7 @@ public:
 			string name = boneName[j];
 
 			// get parent
-			MObject boneObj = bonesMaya[j].node();
+			MObject boneObj = influences[j].node();
 			MFnDagNode boneDagFn(boneObj, &status);
 			CHECK_MSTATUS_AND_THROW(status);
 			MObject boneParentObj = boneDagFn.parent(0);
@@ -224,12 +223,12 @@ public:
 
 			// get bind matrix
 			mT[name].resize(nF * 4, 4);
-			Matrix4d bindMatrix = Conversion::toMatrix4D(bonesMaya[j].inclusiveMatrix());
+			Matrix4d bindMatrix = Conversion::toMatrix4D(influences[j].inclusiveMatrix());
 			bind.blk4(0, j) = bindMatrix;
 			bindMatrices[name] = bindMatrix;
 
 			// get rotation order
-			MPlug rotateOrderPlug = boneDagFn.findPlug("rotateOrder", &status);
+			MPlug rotateOrderPlug = boneDagFn.findPlug("rotateOrder", true, &status);
 			CHECK_MSTATUS_AND_THROW(status);
 
 			int rotateOrder = rotateOrderPlug.asInt();
@@ -267,7 +266,7 @@ public:
 			}
 
 			// get joint orient
-			MPlug jointOrientPlug = boneDagFn.findPlug("jointOrient", &status);
+			MPlug jointOrientPlug = boneDagFn.findPlug("jointOrient", true, &status);
 			CHECK_MSTATUS_AND_THROW(status);
 
 			double jointOrientX = jointOrientPlug.child(0).asMAngle().asDegrees();
@@ -288,7 +287,7 @@ public:
 			}
 
 			// get dem lock
-			MPlug demLockPlug = boneDagFn.findPlug("demLock", &status);
+			MPlug demLockPlug = boneDagFn.findPlug("demLock", true, &status);
 			if (MS::kSuccess == status) lockM(j) = demLockPlug.asInt(); else lockM(j) = 0;
 		}
 
@@ -304,7 +303,7 @@ public:
 				string name = boneName[j];
 
 				// set matrix
-				Matrix4d matrix = Conversion::toMatrix4D(bonesMaya[j].inclusiveMatrix());
+				Matrix4d matrix = Conversion::toMatrix4D(influences[j].inclusiveMatrix());
 				mT[name].blk4(num, 0) = matrix * bindMatrices[name].inverse();
 			}
 		}
@@ -318,10 +317,10 @@ public:
 			string nj = boneName[j];
 
 			for (int k = 0; k < 9; k++) {
-				MFnDependencyNode node(bonesMaya[j].node(), &status);
+				MFnDependencyNode node(influences[j].node(), &status);
 				CHECK_MSTATUS_AND_THROW(status);
 
-				MPlug plug = node.findPlug(transformAttributes[k], &status);
+				MPlug plug = node.findPlug(transformAttributes[k], true, &status);
 				CHECK_MSTATUS_AND_THROW(status);
 
 				if (plug.isDestination()) {
@@ -413,9 +412,9 @@ public:
 		int cF = (int)anim.currentTime().value();
 
 		if (sF >= eF)
-			throw std::exception("Start frame is not allowed to be equal or larger than the end frame.");
+			throw std::runtime_error("Start frame is not allowed to be equal or larger than the end frame.");
 		if (nV != sourceMeshFn.numVertices())
-			throw std::exception("Vertex count between source and target do not match.");
+			throw std::runtime_error("Vertex count between source and target do not match.");
 
 		v.resize(3 * nF, nV);
 		fTime.resize(nF);
@@ -429,7 +428,7 @@ public:
 
 		// initialize model
 		if (nB == 0)
-			throw std::exception("No influences found.");
+			throw std::runtime_error("No influences found.");
 		
 		// compute model
 		LOG("computing" << endl);
@@ -473,16 +472,16 @@ public:
 
 	array<double, 16> bindMatrix(string& bone) {
 		if (bindMatricesMaya.find(bone) == bindMatricesMaya.end())
-			throw std::exception("Provided influence is not valid.");
+			throw std::runtime_error("Provided influence is not valid.");
 
 		return Conversion::toMatrixArray(bindMatricesMaya[bone]);
 	}
 
 	array<double, 16> animMatrix(string& bone, int& frame) {
 		if (animMatricesMaya.find(bone) == animMatricesMaya.end())
-			throw std::exception("Provided bone is not valid.");
+			throw std::runtime_error("Provided bone is not valid.");
 		if (animMatricesMaya[bone].find(frame) == animMatricesMaya[bone].end())
-			throw std::exception("Provided frame is not valid.");
+			throw std::runtime_error("Provided frame is not valid.");
 
 		return Conversion::toMatrixArray(animMatricesMaya[bone][frame]);
 	}
@@ -513,7 +512,7 @@ public:
 
 		// assure that the provided weights match the number of vertices and influences
 		if (weights.size() != numVertices * numInfluences)
-			throw std::exception("Provided weights do not match the number of vertices and influences.");
+			throw std::runtime_error("Provided weights do not match the number of vertices and influences.");
 
 		// set the weights
 		MPlug weightListPlug = fnSkin.findPlug("weightList", true);
@@ -545,7 +544,7 @@ public:
 			skinClusterObj = getSkinCluster(getMObject(skinCluster));
 		}
 		if(skinClusterObj.isNull()) 
-			throw std::exception("No skinCluster provided");
+			throw std::runtime_error("No skinCluster provided");
 		
 		if (weights.size() != 0)
 			setWeights(skinClusterObj, weights);

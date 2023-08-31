@@ -37,7 +37,7 @@ using namespace Eigen;
 
 #define CHECK_MSTATUS_AND_THROW(status) {                       \
 	if (status.error())                                         \
-		throw std::exception(status.errorString().asChar());    \
+		throw std::runtime_error(status.errorString().asChar());    \
 }
 
 
@@ -60,7 +60,7 @@ namespace Conversion {
 		return dag;
 	};
 
-	Matrix4d toMatrix4D(MMatrix& source) {
+	Matrix4d toMatrix4D(const MMatrix& source) {
 		Matrix4d target;
 
 		for (int i = 0; i < 4; i++)
@@ -78,7 +78,7 @@ namespace Conversion {
 		CHECK_MSTATUS_AND_THROW(status);
 
 		const double rotation[3] = { rotate.x, rotate.y, rotate.z };
-		status = matrix.setRotation(rotation, rotateOrder, MSpace::kObject);
+		status = matrix.setRotation(rotation, rotateOrder);
 		CHECK_MSTATUS_AND_THROW(status);
 		return matrix.asMatrix();
 	};
