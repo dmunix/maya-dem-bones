@@ -78,7 +78,7 @@ namespace Conversion {
 		CHECK_MSTATUS_AND_THROW(status);
 
 		const double rotation[3] = { rotate.x, rotate.y, rotate.z };
-		status = matrix.setRotation(rotation, rotateOrder);
+		status = matrix.setRotation(rotation, rotateOrder, MSpace::kObject);
 		CHECK_MSTATUS_AND_THROW(status);
 		return matrix.asMatrix();
 	};
